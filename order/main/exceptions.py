@@ -18,3 +18,9 @@ class OrderAlreadyCancelledError(Exception):
   def __init__(self, order):
     message = f'The order with ID {order} is already cancelled'
     super().__init__(message)
+
+class OrderCancellationError(Exception):
+  pass
+
+class OrderNotFoundError(Exception):
+  pass
