@@ -25,6 +25,9 @@ class Order(models.Model):
   last_updated = models.DateTimeField(auto_now=True)
   status = models.IntegerField(choices=ORDER_STATUS, default='1')
 
+  # access all methods defined in the OrderManager through Order.objects
+  objects = OrderManager()
+
 ## Holds items belonging to an Order
 class OrderItems(models.Model):
   class Meta: #Set metadata information on our Model class
