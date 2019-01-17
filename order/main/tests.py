@@ -66,3 +66,122 @@ class OrderModelTestCase(TestCase):
   def test_get_customer_incomplete_orders_with_invalid_id(self):
     with self.assertRaises(InvalidArgumentError):
       Order.objects.get_customer_incomplete_orders('o')
+
+  def test_get_customer_completed_orders(self):
+    orders = Order.objects.get_customer_completed_orders(customer_id=1)
+
+    self.assertEqual(1, len(orders))
+    self.assertEqual(Status.Completed.value, orders[0].status)
+  
+  def test_get_customer_completed_orders_with_invalid_id(self):
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.get_customer_completed_orders('0')
+
+  def test_get_order_by_status(self):
+    order = Order.objects.get_order_by_status(Status.Received)
+
+    self.assertEqual(2, len(order), msg=('There should be only 2 orders with status=Received.'))
+    self.assertEqual('customer_001@test.com', order[0].order_customer.email)
+
+  def test_get_order_by_status_with_invalid_status(self):
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.get_order_by_status(1)
+
+  ## Test Fetch orders by given date range period
+  ### When valid periods are passed
+  def test_get_orders_by_period(self):
+    date_from = timezone.now() - relativedelta(days=1) # Current date Minus one day
+    date_to = date_from + relativedelta(days=2)
+
+    orders = Order.objects.get_orders_by_period(date_from, date_to)
+    self.assertEqual(3, len(orders))
+
+    date_from = timezone.now() + relativedelta(days=3)
+    date_to = date_from + relativedelta(months=1)
+
+    orders = Order.objects.get_orders_by_period(date_from, date_to)
+    self.assertEqual(0, len(orders))
+
+  def test_get_orders_by_period_with_invalid_start_date(self):
+    start_date = timezone.now()
+
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.get_orders_by_period(start_date, None)
+
+  def test_get_orders_by_period_with_invalid_end_date(self):
+    end_date = timezone.now()
+
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.get_orders_by_period(None, end_date)
+
+  ### Setting the order's next status
+  def test_set_next_status(self):
+    order = Order.objects.get(pk=1)
+    self.assertTrue(order is not None, msg='The order is None.')
+    self.assertEqual(Status.Received.value, order.status, msg='The status should have been Status.Received.')
+
+    Order.objects.set_next_status(order)
+    self.assertEqual(Status.Processing.value, order.status, msg='The status should have been Status.Processing.')
+
+  def test_set_next_status_on_completed_order(self):
+    order = Order.objects.get(pk=2)
+
+    with self.assertRaises(OrderAlreadyCompletedError):
+      Order.objects.set_next_status(order)
+
+  def test_set_next_status_on_invalid_order(self):
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.set_next_status({'order': 1})
+
+  ### Test for set_status() Method 
+  def test_set_next_status(self):
+    order = Order.objects.get(pk=1)
+
+    self.assertTrue(order is not None, msg='The order is None.')
+
+    self.assertEqual(Status.Received.value, order.status, msg='The status should have been Status.Received.')
+
+    Order.objects.set_next_status(order)
+
+    self.assertEqual(Status.Processing.value, order.status, msg='The status should have been Status.Processing.')
+
+  # Cannot set status on completed Order
+  def test_set_next_status_on_completed_order(self):
+    order = Order.objects.get(pk=2)
+
+    with self.assertRaises(OrderAlreadyCompletedError):
+      Order.objects.set_next_status(order)
+
+  # Cannot set status on invalid order
+  def test_set_next_status_on_invalid_order(self):
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.set_next_status({'order': 1})
+
+  def test_set_status(self):
+    order = Order.objects.get(pk=1)
+
+    Order.objects.set_status(order, Status.Processing)
+      self.assertEqual(Status.Processing.value, order.status)
+
+  def test_set_status_on_completed_order(self):
+    order = Order.objects.get(pk=2)
+
+    with self.assertRaises(OrderAlreadyCompletedError):
+      Order.objects.set_status(order, Status.Processing)
+
+  def test_set_status_on_cancelled_order(self):
+    order = Order.objects.get(pk=1)
+    Order.objects.cancel_order(order)
+
+    with self.assertRaises(OrderAlreadyCancelledError):
+      Order.objects.set_status(order, Status.Processing)
+
+  def test_set_status_with_invalid_order(self):
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.set_status(None, Status.Processing)
+
+  def test_set_status_with_invalid_status(self):
+    order = Order.objects.get(pk=1)
+
+    with self.assertRaises(InvalidArgumentError):
+      Order.objects.set_status(order, {'status': 1})
