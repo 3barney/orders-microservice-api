@@ -1,4 +1,5 @@
 from django.db import models
+from .managers import OrderManager
 
 ## Model that stores info about ordering customer 
 class OrderCustomer(models.Model):

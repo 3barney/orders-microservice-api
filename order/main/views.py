@@ -19,7 +19,7 @@ class OrdersByCustomerView(OrderListApiBaseView):
     calls get_all_orders_by_customer that we created in the Order model manager,
     passing the customer_id .
   """
-  def get_queryset(self, customer_id)
+  def get_queryset(self, customer_id):
     return Order.objects.get_all_orders_by_customer(customer_id)
 
 
@@ -34,7 +34,7 @@ class CompletedOrdersByCustomerView(OrderListApiBaseView):
   lookup_field = 'customer_id'
 
   def get_queryset(self, customer_id):
-    return Order..objects.get_customer_completed_orders(customer_id)
+    return Order.objects.get_customer_completed_orders(customer_id)
 
 
 # List of orders by specific status

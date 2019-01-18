@@ -23,7 +23,7 @@ class OrderSerializer(serializers.ModelSerializer):
   class Meta:
     depth = 1 #depth of the relationships that should be traversed before the serialization
     model = Order
-    fields = ('items', 'total', 'order_customer', 'created_at', 'id', 'status',)
+    fields = ('items', 'totals', 'order_customer', 'created_at', 'id', 'status',)
   
   def get_status(self, obj): # method that will get the display value for the ChoiceField status
     return obj.get_status_display()
